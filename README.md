@@ -1,4 +1,37 @@
-# Getting Started with Create React App
+# RAGFlow Chat App
+
+RAGFlow API를 사용한 채팅 애플리케이션입니다.
+
+## 환경변수 설정
+
+프로젝트 루트에 `.env` 파일을 생성하고 다음 환경변수들을 설정하세요:
+
+```env
+# RAGFlow API 설정
+REACT_APP_API_BASE=https://your-ragflow-instance/api/v1
+REACT_APP_API_KEY=your-api-key-here
+REACT_APP_CHAT_ID=your-chat-id-here
+REACT_APP_MODEL=gpt-3.5-turbo
+
+# 개발 환경 설정
+REACT_APP_ENV=development
+```
+
+### 환경변수 설명
+
+- `REACT_APP_API_BASE`: RAGFlow API 서버의 기본 URL
+- `REACT_APP_API_KEY`: RAGFlow API 인증 키
+- `REACT_APP_CHAT_ID`: 채팅 세션 ID
+- `REACT_APP_MODEL`: 사용할 AI 모델 (기본값: gpt-3.5-turbo)
+
+## 기술 스택
+
+- React 19
+- TypeScript
+- Tailwind CSS
+- Create React App
+
+## Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 

@@ -93,29 +93,35 @@ const App: React.FC = () => {
         stream: true
       };
 
-      // Use trusted CORS proxy for HTTP API calls from HTTPS
-      const getProxyUrl = (url: string) => {
-        // 여러 안전한 프록시 서비스 중 선택
-        const proxies = [
-          `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
-          `https://cors.bridged.cc/${url}`,
-          `https://thingproxy.freeboard.io/fetch/${url}`
-        ];
-        return proxies[0]; // 첫 번째 프록시 사용
-      };
+      // Try direct API call first, fallback to proxy if needed
+      let apiUrl = `${config.apiBase}/chats_openai/${config.chatId}/chat/completions`;
       
-      const apiUrl = config.apiBase.startsWith('http://') 
-        ? getProxyUrl(`${config.apiBase}/chats_openai/${config.chatId}/chat/completions`)
-        : `${config.apiBase}/chats_openai/${config.chatId}/chat/completions`;
+      console.log('Trying direct API call:', apiUrl);
       
-      const response = await fetch(apiUrl, {
-        method: 'POST',
-        headers: { 
-          'Authorization': `Bearer ${config.apiKey}`, 
-          'Content-Type': 'application/json' 
-        },
-        body: JSON.stringify(requestBody),
-      });
+            let response;
+      try {
+        response = await fetch(apiUrl, {
+          method: 'POST',
+          headers: { 
+            'Authorization': `Bearer ${config.apiKey}`, 
+            'Content-Type': 'application/json' 
+          },
+          body: JSON.stringify(requestBody),
+        });
+      } catch (error) {
+        console.log('Direct API call failed, trying proxy...');
+        // Fallback to proxy
+        apiUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(`${config.apiBase}/chats_openai/${config.chatId}/chat/completions`)}`;
+        console.log('Trying proxy:', apiUrl);
+        response = await fetch(apiUrl, {
+          method: 'POST',
+          headers: { 
+            'Authorization': `Bearer ${config.apiKey}`, 
+            'Content-Type': 'application/json' 
+          },
+          body: JSON.stringify(requestBody),
+        });
+      }
 
       if (!response.ok) {
         const errorText = await response.text();

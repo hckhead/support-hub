@@ -24,6 +24,30 @@ REACT_APP_ENV=development
 - `REACT_APP_CHAT_ID`: 채팅 세션 ID
 - `REACT_APP_MODEL`: 사용할 AI 모델 (기본값: gpt-3.5-turbo)
 
+## Mixed Content 문제 해결
+
+GitHub Pages는 HTTPS만 지원하므로 HTTP API를 호출할 때 Mixed Content 에러가 발생할 수 있습니다.
+
+### 해결 방법:
+
+1. **신뢰할 수 있는 CORS 프록시 사용** (현재 구현됨)
+   - HTTP API 호출 시 자동으로 안전한 CORS 프록시 사용
+   - `api.allorigins.win`, `cors.bridged.cc` 등 신뢰할 수 있는 프록시 서비스 활용
+   - 여러 프록시 서비스 중 선택하여 안정성 확보
+
+2. **자체 프록시 서버 구축** (가장 안전)
+   - `proxy-server.js` 파일로 자체 프록시 서버 구현
+   - Heroku, Railway, Render 등에 배포하여 완전한 제어
+   - `npm run proxy` 명령어로 로컬 테스트 가능
+
+3. **API 서버 HTTPS 설정**
+   - API 서버에 SSL 인증서 설치
+   - 가장 근본적이고 안전한 해결책
+
+4. **다른 배포 플랫폼 사용**
+   - Netlify, Vercel 등은 자체 프록시 기능 제공
+   - 더 안정적인 CORS 처리 가능
+
 ## 기술 스택
 
 - React 19

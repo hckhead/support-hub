@@ -17,7 +17,7 @@ const App: React.FC = () => {
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [config, setConfig] = useState<Config>({
-    apiBase: process.env.REACT_APP_API_BASE || 'https://your-ragflow-instance/api/v1',
+    apiBase: process.env.REACT_APP_API_BASE || 'http://3.39.174.130/api/v1',
     apiKey: process.env.REACT_APP_API_KEY || '',
     chatId: process.env.REACT_APP_CHAT_ID || '',
     model: process.env.REACT_APP_MODEL || 'gpt-3.5-turbo',
@@ -93,7 +93,22 @@ const App: React.FC = () => {
         stream: true
       };
 
-      const response = await fetch(`${config.apiBase}/chats_openai/${config.chatId}/chat/completions`, {
+      // Use trusted CORS proxy for HTTP API calls from HTTPS
+      const getProxyUrl = (url: string) => {
+        // 여러 안전한 프록시 서비스 중 선택
+        const proxies = [
+          `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+          `https://cors.bridged.cc/${url}`,
+          `https://thingproxy.freeboard.io/fetch/${url}`
+        ];
+        return proxies[0]; // 첫 번째 프록시 사용
+      };
+      
+      const apiUrl = config.apiBase.startsWith('http://') 
+        ? getProxyUrl(`${config.apiBase}/chats_openai/${config.chatId}/chat/completions`)
+        : `${config.apiBase}/chats_openai/${config.chatId}/chat/completions`;
+      
+      const response = await fetch(apiUrl, {
         method: 'POST',
         headers: { 
           'Authorization': `Bearer ${config.apiKey}`, 
@@ -163,7 +178,16 @@ const App: React.FC = () => {
         <div className="min-h-screen bg-white flex flex-col">
       {/* Header */}
       <header className="flex justify-between items-center py-2 px-4 border-b border-gray-200">
-        <h1 className="text-lg font-medium text-gray-800">Support Hub</h1>
+        <button 
+          onClick={() => {
+            setMessages([]);
+            setInput('');
+            setCurrentAiMessage('');
+          }}
+          className="text-lg font-medium text-gray-800 hover:text-blue-600 cursor-pointer"
+        >
+          Support Hub
+        </button>
         <button 
           onClick={() => setShowConfig(true)} 
           className="text-gray-500 hover:text-gray-700 text-xs px-2 py-1 rounded hover:bg-gray-100"

@@ -93,35 +93,22 @@ const App: React.FC = () => {
         stream: true
       };
 
-      // Try direct API call first, fallback to proxy if needed
-      let apiUrl = `${config.apiBase}/chats_openai/${config.chatId}/chat/completions`;
+            // Use Netlify proxy for HTTP API calls
+      const apiUrl = config.apiBase.startsWith('http://') 
+        ? `/api/chats_openai/${config.chatId}/chat/completions`
+        : `${config.apiBase}/chats_openai/${config.chatId}/chat/completions`;
       
-      console.log('Trying direct API call:', apiUrl);
+      console.log('API call:', apiUrl);
+      console.log('Config:', { apiBase: config.apiBase, chatId: config.chatId });
       
-            let response;
-      try {
-        response = await fetch(apiUrl, {
-          method: 'POST',
-          headers: { 
-            'Authorization': `Bearer ${config.apiKey}`, 
-            'Content-Type': 'application/json' 
-          },
-          body: JSON.stringify(requestBody),
-        });
-      } catch (error) {
-        console.log('Direct API call failed, trying proxy...');
-        // Fallback to proxy
-        apiUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(`${config.apiBase}/chats_openai/${config.chatId}/chat/completions`)}`;
-        console.log('Trying proxy:', apiUrl);
-        response = await fetch(apiUrl, {
-          method: 'POST',
-          headers: { 
-            'Authorization': `Bearer ${config.apiKey}`, 
-            'Content-Type': 'application/json' 
-          },
-          body: JSON.stringify(requestBody),
-        });
-      }
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: { 
+          'Authorization': `Bearer ${config.apiKey}`, 
+          'Content-Type': 'application/json' 
+        },
+        body: JSON.stringify(requestBody),
+      });
 
       if (!response.ok) {
         const errorText = await response.text();
@@ -148,26 +135,56 @@ const App: React.FC = () => {
         
         const chunk = new TextDecoder().decode(value);
         
-        // 간단한 문자열 처리로 content 추출
-        if (chunk.includes('"content":')) {
-          const contentMatch = chunk.match(/"content":\s*"([^"]*)"/);
-          if (contentMatch && contentMatch[1]) {
-            const content = contentMatch[1];
-            
-            if (content) {
-              aiContentRef.current += content;
-              setCurrentAiMessage(aiContentRef.current);
+        // JSON 파싱 시도
+        try {
+          const lines = chunk.split('\n');
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              const jsonStr = line.slice(6);
+              if (jsonStr === '[DONE]') continue;
               
-              // 메시지 업데이트
-              setMessages((prev) => {
-                const updatedMessages = [...prev];
-                const lastMessage = updatedMessages[updatedMessages.length - 1];
-                if (lastMessage && lastMessage.role === 'ai') {
-                  lastMessage.content = aiContentRef.current;
-                  setForceUpdate(prev => prev + 1);
-                }
-                return updatedMessages;
-              });
+              const parsed = JSON.parse(jsonStr);
+              const content = parsed.choices?.[0]?.delta?.content;
+              
+              if (content) {
+                aiContentRef.current += content;
+                setCurrentAiMessage(aiContentRef.current);
+                
+                // 메시지 업데이트
+                setMessages((prev) => {
+                  const updatedMessages = [...prev];
+                  const lastMessage = updatedMessages[updatedMessages.length - 1];
+                  if (lastMessage && lastMessage.role === 'ai') {
+                    lastMessage.content = aiContentRef.current;
+                    setForceUpdate(prev => prev + 1);
+                  }
+                  return updatedMessages;
+                });
+              }
+            }
+          }
+        } catch (parseError) {
+          // JSON 파싱 실패 시 문자열 처리
+          if (chunk.includes('"content":')) {
+            const contentMatch = chunk.match(/"content":\s*"([^"]*)"/);
+            if (contentMatch && contentMatch[1]) {
+              const content = contentMatch[1];
+              
+              if (content) {
+                aiContentRef.current += content;
+                setCurrentAiMessage(aiContentRef.current);
+                
+                // 메시지 업데이트
+                setMessages((prev) => {
+                  const updatedMessages = [...prev];
+                  const lastMessage = updatedMessages[updatedMessages.length - 1];
+                  if (lastMessage && lastMessage.role === 'ai') {
+                    lastMessage.content = aiContentRef.current;
+                    setForceUpdate(prev => prev + 1);
+                  }
+                  return updatedMessages;
+                });
+              }
             }
           }
         }

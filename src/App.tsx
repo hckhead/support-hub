@@ -251,10 +251,10 @@ const App: React.FC = () => {
         {messages.length === 0 ? (
           /* Google-style centered layout when no messages */
           <div className="flex-1 flex flex-col justify-center items-center px-4">
-            <div className="text-center mb-12">
+                        <div className="text-center mb-8">
               <div className="text-6xl mb-4">💬</div>
               <h2 className="text-2xl font-light text-gray-600 mb-2">Support Hub에 오신 것을 환영합니다</h2>
-              </div>
+            </div>
             
             {/* Google-style centered input */}
             <div className="w-full max-w-2xl">

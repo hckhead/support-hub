@@ -26,10 +26,40 @@ exports.handler = async (event, context) => {
     const apiBase = process.env.RAGFLOW_API_BASE || 'http://3.39.174.130/api/v1';
     
     // 경로에서 실제 API 엔드포인트 추출
-    const apiPath = path.replace('/.netlify/functions/proxy', '');
-    const targetUrl = `${apiBase}${apiPath}`;
+    let apiPath = path;
     
-    console.log(`Proxying request to: ${targetUrl}`);
+    // 여러 가능한 경로 패턴 처리
+    if (path.startsWith('/.netlify/functions/proxy')) {
+      apiPath = path.replace('/.netlify/functions/proxy', '');
+    } else if (path.startsWith('/api')) {
+      apiPath = path.replace('/api', '');
+    }
+    
+    // URL 검증 및 수정
+    let targetUrl = `${apiBase}${apiPath}`;
+    
+    // URL이 유효한지 확인
+    try {
+      new URL(targetUrl);
+    } catch (error) {
+      console.error('Invalid URL:', targetUrl);
+      return {
+        statusCode: 400,
+        headers,
+        body: JSON.stringify({
+          error: 'Invalid URL',
+          message: `Invalid URL: ${targetUrl}`,
+          originalPath: path,
+          apiPath: apiPath,
+          apiBase: apiBase
+        })
+      };
+    }
+    
+    console.log(`Original path: ${path}`);
+    console.log(`API path: ${apiPath}`);
+    console.log(`Target URL: ${targetUrl}`);
+    console.log(`API Base: ${apiBase}`);
     
     // 요청 헤더 준비
     const proxyHeaders = {

@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from 'react';
-     import './App.css';
 
 interface Message {
   role: 'user' | 'ai';

@@ -164,7 +164,17 @@ const App: React.FC = () => {
         <div className="min-h-screen bg-white flex flex-col">
       {/* Header */}
       <header className="flex justify-between items-center py-2 px-4 border-b border-gray-200">
-        <h1 className="text-lg font-medium text-gray-800">Support Hub</h1>
+        <h1 
+          onClick={() => {
+            setMessages([]);
+            setCurrentAiMessage('');
+            setInput('');
+            sessionStorage.removeItem('chatHistory');
+          }}
+          className="text-lg font-medium text-gray-800 cursor-pointer hover:text-blue-600 transition-colors"
+        >
+          Support Hub
+        </h1>
         <button 
           onClick={() => setShowConfig(true)} 
           className="text-gray-500 hover:text-gray-700 text-xs px-2 py-1 rounded hover:bg-gray-100"

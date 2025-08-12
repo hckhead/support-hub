@@ -18,10 +18,10 @@ const App: React.FC = () => {
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [config, setConfig] = useState<Config>({
-    apiBase: process.env.REACT_APP_API_BASE || 'https://your-ragflow-instance/api/v1',
+    apiBase: process.env.REACT_APP_API_BASE || 'http://3.39.174.130:8080/api/v1',
     apiKey: process.env.REACT_APP_API_KEY || '',
     chatId: process.env.REACT_APP_CHAT_ID || '',
-    model: process.env.REACT_APP_MODEL || 'gpt-3.5-turbo',
+    model: process.env.REACT_APP_MODEL || 'gpt-4.1-mini',
   });
   const [showConfig, setShowConfig] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -76,7 +76,7 @@ const App: React.FC = () => {
     }
     
     if (!config.chatId) {
-      setMessages((prev) => [...prev, { role: 'ai', content: 'Chat ID가 설정되지 않았습니다. 설정에서 Chat ID를 입력해주세요.' }]);
+      setMessages((prev) => [...prev, { role: 'ai', content: 'Agent ID가 설정되지 않았습니다. 설정에서 Agent ID를 입력해주세요.' }]);
       return;
     }
     
@@ -94,7 +94,7 @@ const App: React.FC = () => {
         stream: true
       };
 
-      const response = await fetch(`${config.apiBase}/chats_openai/${config.chatId}/chat/completions`, {
+      const response = await fetch(`${config.apiBase}/agents_openai/${config.chatId}/chat/completions`, {
         method: 'POST',
         headers: { 
           'Authorization': `Bearer ${config.apiKey}`, 
@@ -217,11 +217,11 @@ const App: React.FC = () => {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Chat ID</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Agent ID</label>
                 <input
                   value={config.chatId}
                   onChange={(e) => setConfig({ ...config, chatId: e.target.value })}
-                  placeholder="your-chat-id"
+                  placeholder="your-agent-id"
                   className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>

@@ -119,6 +119,9 @@ const App: React.FC = () => {
       // AI 메시지 추가
       setMessages((prev) => [...prev, { role: 'ai', content: '' }]);
 
+      // 누적 버퍼 (청크 경계 문제 해결)
+      let buffer = '';
+
       while (true) {
         const { done, value } = await reader.read();
         if (done) { 
@@ -127,12 +130,23 @@ const App: React.FC = () => {
         }
         
         const chunk = new TextDecoder().decode(value);
+        buffer += chunk;
         
-        // 간단한 문자열 처리로 content 추출
-        if (chunk.includes('"content":')) {
-          const contentMatch = chunk.match(/"content":\s*"([^"]*)"/);
-          if (contentMatch && contentMatch[1]) {
-            const content = contentMatch[1];
+        // 줄바꿈으로 분리하여 각 JSON 객체 처리
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || ''; // 마지막 불완전한 라인은 버퍼에 보관
+        
+        for (const line of lines) {
+          if (line.trim() === '') continue;
+          if (line.trim() === 'data: [DONE]') continue;
+          
+          try {
+            // data: 접두사 제거
+            const jsonStr = line.replace(/^data: /, '').trim();
+            if (!jsonStr) continue;
+            
+            const parsed = JSON.parse(jsonStr);
+            const content = parsed.choices?.[0]?.delta?.content;
             
             if (content) {
               aiContentRef.current += content;
@@ -149,6 +163,9 @@ const App: React.FC = () => {
                 return updatedMessages;
               });
             }
+          } catch (error) {
+            // JSON 파싱 실패 시 무시 (불완전한 청크)
+            continue;
           }
         }
       }

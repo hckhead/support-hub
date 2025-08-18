@@ -4,6 +4,11 @@ import React, { useState, useEffect, useRef } from 'react';
 interface Message {
   role: 'user' | 'ai';
   content: string;
+  references?: Array<{
+    title: string;
+    content?: string;
+    metadata?: any;
+  }>;
 }
 
 interface Config {
@@ -98,6 +103,15 @@ const App: React.FC = () => {
     setInput('');
     setLoading(true);
 
+    // 디버깅: API 호출 정보 로그
+    console.log('🚀 API 호출 시작:', {
+      url: `${config.apiBase}/agents_openai/${config.chatId}/chat/completions`,
+      apiKey: config.apiKey ? `${config.apiKey.substring(0, 8)}...` : '없음',
+      chatId: config.chatId,
+      model: config.model,
+      userMessage: input
+    });
+
     try {
       const requestBody = {
         model: config.model,
@@ -107,6 +121,8 @@ const App: React.FC = () => {
         stream: true
       };
 
+      console.log('📤 요청 본문:', requestBody);
+
       const response = await fetch(`${config.apiBase}/agents_openai/${config.chatId}/chat/completions`, {
         method: 'POST',
         headers: { 
@@ -115,6 +131,9 @@ const App: React.FC = () => {
         },
         body: JSON.stringify(requestBody),
       });
+
+      console.log('📥 응답 상태:', response.status, response.statusText);
+      console.log('📥 응답 헤더:', Object.fromEntries(response.headers.entries()));
 
       if (!response.ok) {
         const errorText = await response.text();
@@ -129,20 +148,39 @@ const App: React.FC = () => {
       aiContentRef.current = '';
       setCurrentAiMessage('');
       
-      // AI 메시지 추가
-      setMessages((prev) => [...prev, { role: 'ai', content: '' }]);
+      // AI 메시지 추가 (참조 정보 포함)
+      setMessages((prev) => [...prev, { role: 'ai', content: '', references: [] }]);
 
       // 누적 버퍼 (청크 경계 문제 해결)
       let buffer = '';
+      let chunkCount = 0;
+      let hasContent = false;
+
+      console.log('🔄 스트리밍 시작...');
 
       while (true) {
         const { done, value } = await reader.read();
         if (done) { 
+          console.log('✅ 스트리밍 완료. 총 청크 수:', chunkCount, '콘텐츠 있음:', hasContent);
           setLoading(false); 
+          
+          // 콘텐츠가 없으면 에러 메시지 표시
+          if (!hasContent) {
+            setMessages((prev) => {
+              const updatedMessages = [...prev];
+              const lastMessage = updatedMessages[updatedMessages.length - 1];
+              if (lastMessage && lastMessage.role === 'ai') {
+                lastMessage.content = `❌ 응답이 비어있습니다. (청크 수: ${chunkCount})\n\n가능한 원인:\n• API 키 또는 Agent ID가 잘못되었습니다\n• 서버 연결에 문제가 있습니다\n• 요청 형식이 올바르지 않습니다\n\n콘솔에서 자세한 로그를 확인해주세요.`;
+              }
+              return updatedMessages;
+            });
+          }
           break; 
         }
         
+        chunkCount++;
         const chunk = new TextDecoder().decode(value);
+        console.log(`📦 청크 ${chunkCount}:`, chunk.substring(0, 100) + (chunk.length > 100 ? '...' : ''));
         buffer += chunk;
         
         // 줄바꿈으로 분리하여 각 JSON 객체 처리
@@ -159,9 +197,22 @@ const App: React.FC = () => {
             if (!jsonStr) continue;
             
             const parsed = JSON.parse(jsonStr);
+            
+            // 디버깅: 전체 응답 구조 확인
+            if (parsed.choices?.[0]?.delta && Object.keys(parsed.choices[0].delta).length > 0) {
+              console.log('Streaming response delta:', parsed.choices[0].delta);
+            }
+            
             const content = parsed.choices?.[0]?.delta?.content;
             
+            // 참조 정보 추출 (RAGFlow API 응답 구조에 따라)
+            const references = parsed.choices?.[0]?.delta?.references || 
+                              parsed.choices?.[0]?.delta?.context?.references ||
+                              parsed.choices?.[0]?.delta?.metadata?.references ||
+                              parsed.choices?.[0]?.delta?.tool_calls?.[0]?.function?.arguments;
+            
             if (content) {
+              hasContent = true;
               aiContentRef.current += content;
               setCurrentAiMessage(aiContentRef.current);
               
@@ -171,6 +222,25 @@ const App: React.FC = () => {
                 const lastMessage = updatedMessages[updatedMessages.length - 1];
                 if (lastMessage && lastMessage.role === 'ai') {
                   lastMessage.content = aiContentRef.current;
+                  
+                  // 참조 정보가 있으면 업데이트
+                  if (references && Array.isArray(references)) {
+                    lastMessage.references = references;
+                  }
+                  
+                  setForceUpdate(prev => prev + 1);
+                }
+                return updatedMessages;
+              });
+            }
+            
+            // 참조 정보만 있는 경우 (content가 없지만 references가 있는 경우)
+            if (!content && references && Array.isArray(references) && references.length > 0) {
+              setMessages((prev) => {
+                const updatedMessages = [...prev];
+                const lastMessage = updatedMessages[updatedMessages.length - 1];
+                if (lastMessage && lastMessage.role === 'ai') {
+                  lastMessage.references = references;
                   setForceUpdate(prev => prev + 1);
                 }
                 return updatedMessages;
@@ -183,9 +253,25 @@ const App: React.FC = () => {
         }
       }
     } catch (error) {
-      console.error('API 오류:', error);
+      console.error('❌ API 오류:', error);
       const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다.';
-      setMessages((prev) => [...prev, { role: 'ai', content: `오류 발생: ${errorMessage}` }]);
+      
+      // 더 자세한 에러 정보 제공
+      let detailedError = `❌ 오류 발생: ${errorMessage}`;
+      
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        detailedError += '\n\n네트워크 연결을 확인해주세요.';
+      } else if (errorMessage.includes('401')) {
+        detailedError += '\n\nAPI 키가 잘못되었습니다. 설정에서 확인해주세요.';
+      } else if (errorMessage.includes('404')) {
+        detailedError += '\n\nAgent ID가 잘못되었습니다. 설정에서 확인해주세요.';
+      } else if (errorMessage.includes('500')) {
+        detailedError += '\n\n서버 내부 오류입니다. 잠시 후 다시 시도해주세요.';
+      }
+      
+      detailedError += '\n\n콘솔에서 자세한 로그를 확인해주세요.';
+      
+      setMessages((prev) => [...prev, { role: 'ai', content: detailedError }]);
       setLoading(false);
     }
   };
@@ -349,11 +435,32 @@ const App: React.FC = () => {
                         ? 'bg-blue-600 text-white' 
                         : isDarkMode ? 'bg-gray-700 text-gray-200' : 'bg-gray-100 text-gray-800'
                     }`}>
-                     <div>
+                      <div className="whitespace-pre-wrap">
                         {msg.role === 'ai' && index === messages.length - 1 && currentAiMessage 
                           ? currentAiMessage 
                           : (msg.content || '(빈 메시지)')}
                       </div>
+                      
+                      {/* 참조 문서 정보 표시 */}
+                      {msg.role === 'ai' && msg.references && msg.references.length > 0 && (
+                        <div className="mt-3 pt-3 border-t border-gray-300 dark:border-gray-600">
+                          <div className={`text-xs font-medium mb-2 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                            📚 참조 문서:
+                          </div>
+                          <div className="space-y-1">
+                            {msg.references.map((ref, refIndex) => (
+                              <div key={refIndex} className={`text-xs p-2 rounded ${isDarkMode ? 'bg-gray-600 text-gray-200' : 'bg-gray-50 text-gray-700'}`}>
+                                <div className="font-medium">{ref.title || `문서 ${refIndex + 1}`}</div>
+                                {ref.content && (
+                                  <div className="mt-1 text-gray-500 dark:text-gray-400 line-clamp-2">
+                                    {ref.content}
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -369,12 +476,6 @@ const App: React.FC = () => {
                 )}
               </div>
               <div ref={messagesEndRef} />
-              {/* 경고 문구 */}
-              <div className="mt-4 text-center">
-                <p className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                  Support-Hub는 실수를 할 수 있습니다. 꼭 중요한 정보는 꼭 미들웨어솔루션팀으로 문의 부탁드립니다.
-                </p>
-              </div>
             </div>
           </>
         )}
@@ -400,6 +501,12 @@ const App: React.FC = () => {
                 >
                   전송
                 </button>
+              </div>
+              {/* 경고 문구 - 채팅 하단 */}
+              <div className="mt-3 text-center">
+                <p className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                  Support-Hub는 실수를 할 수 있습니다. 중요한 정보는 꼭 미들웨어솔루션팀으로 문의 부탁드립니다.
+                </p>
               </div>
             </div>
           </div>

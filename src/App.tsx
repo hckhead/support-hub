@@ -328,7 +328,7 @@ const App: React.FC = () => {
               {/* 경고 문구 */}
               <div className="mt-6 text-center">
                 <p className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                  Support-Hub는 실수를 할 수 있습니다. 중요한 정보는 꼭 미들웨어솔루션팀 채널로 재차 문의 부탁드립니다.
+                  Support-Hub는 실수를 할 수 있습니다. 중요한 정보는 꼭 미들웨어솔루션팀으로 문의 부탁드립니다.
                 </p>
               </div>
             </div>
@@ -372,7 +372,7 @@ const App: React.FC = () => {
               {/* 경고 문구 */}
               <div className="mt-4 text-center">
                 <p className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                  Support-Hub는 실수를 할 수 있습니다. 중요한 정보는 꼭 미들웨어솔루션팀 채널로 문의 부탁드립니다.
+                  Support-Hub는 실수를 할 수 있습니다. 꼭 중요한 정보는 꼭 미들웨어솔루션팀으로 문의 부탁드립니다.
                 </p>
               </div>
             </div>

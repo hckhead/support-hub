@@ -274,11 +274,11 @@ const App: React.FC = () => {
       )}
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col relative">
         {messages.length === 0 ? (
           /* Google-style centered layout when no messages */
           <div className="flex-1 flex flex-col justify-center items-center px-4">
-                        <div className="text-center mb-8">
+            <div className="text-center mb-8">
               <div className="text-6xl mb-4">💬</div>
               <h2 className="text-2xl font-light text-gray-600 mb-2">Support Hub에 오신 것을 환영합니다</h2>
             </div>
@@ -309,7 +309,7 @@ const App: React.FC = () => {
           /* Chat layout when messages exist */
           <>
             {/* Chat Messages */}
-            <div className="flex-1 overflow-y-auto p-4">
+            <div className="flex-1 overflow-y-auto p-4 pb-20">
               <div className="max-w-4xl mx-auto space-y-4">
                 {messages.map((msg, index) => (
                   <div
@@ -342,31 +342,33 @@ const App: React.FC = () => {
               </div>
               <div ref={messagesEndRef} />
             </div>
+          </>
+        )}
 
-            {/* Fixed Input Area */}
-            <div className="border-t border-gray-200 p-3">
-              <div className="max-w-4xl mx-auto px-4">
-                <div className="flex items-center space-x-3">
-                  <div className="flex-1 relative">
-                    <input
-                      value={input}
-                      onChange={(e) => setInput(e.target.value)}
-                      onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
-                      placeholder="메시지를 입력하세요..."
-                      className="w-full px-3 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                    />
-                  </div>
-                  <button 
-                    onClick={sendMessage} 
-                    disabled={loading || !input.trim()}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
-                  >
-                    전송
-                  </button>
+        {/* Fixed Input Area - Only visible when chat has started */}
+        {messages.length > 0 && (
+          <div className="absolute bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 shadow-lg">
+            <div className="max-w-4xl mx-auto">
+              <div className="flex items-center space-x-3">
+                <div className="flex-1 relative">
+                  <input
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
+                    placeholder="무엇을 도와드릴까요?"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base"
+                  />
                 </div>
+                <button 
+                  onClick={sendMessage} 
+                  disabled={loading || !input.trim()}
+                  className="px-6 py-3 bg-blue-600 text-white rounded-full hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-base font-medium"
+                >
+                  전송
+                </button>
               </div>
             </div>
-          </>
+          </div>
         )}
       </div>
     </div>

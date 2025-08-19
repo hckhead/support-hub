@@ -82,6 +82,22 @@ const App: React.FC = () => {
     localStorage.setItem('darkMode', JSON.stringify(newDarkMode));
   };
 
+  // 메시지 포맷팅 함수
+  const formatMessage = (content: string) => {
+    // 마크다운 처리
+    return content.split('\n').map(line => {
+      const trimmedLine = line.trim();
+      if (trimmedLine === '') {
+        return '<br>';
+      } else if (trimmedLine.startsWith('**') && trimmedLine.endsWith('**')) {
+        // 볼드 텍스트 처리
+        return `<div class="font-bold mb-1">${trimmedLine.replace(/\*\*/g, '')}</div>`;
+      } else {
+        return `<div class="mb-1">${trimmedLine}</div>`;
+      }
+    }).join('');
+  };
+
   const sendMessage = async () => {
     if (!input.trim()) {
       setMessages((prev) => [...prev, { role: 'ai', content: '메시지를 입력해주세요.' }]);
@@ -277,7 +293,7 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className={`min-h-screen flex flex-col transition-colors duration-200 ${isDarkMode ? 'bg-gray-900 text-white' : 'bg-white text-gray-900'}`}>
+    <div className={`min-h-screen flex flex-col transition-colors duration-200 ${isDarkMode ? 'bg-gray-900 text-white dark' : 'bg-white text-gray-900'}`}>
       {/* Header */}
       <header className={`flex justify-between items-center py-2 px-4 border-b transition-colors duration-200 ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}`}>
         <h1 
@@ -435,11 +451,14 @@ const App: React.FC = () => {
                         ? 'bg-blue-600 text-white' 
                         : isDarkMode ? 'bg-gray-700 text-gray-200' : 'bg-gray-100 text-gray-800'
                     }`}>
-                      <div className="whitespace-pre-wrap">
-                        {msg.role === 'ai' && index === messages.length - 1 && currentAiMessage 
-                          ? currentAiMessage 
-                          : (msg.content || '(빈 메시지)')}
-                      </div>
+                      <div 
+                        className="message-content"
+                        dangerouslySetInnerHTML={{
+                          __html: msg.role === 'ai' && index === messages.length - 1 && currentAiMessage 
+                            ? formatMessage(currentAiMessage)
+                            : formatMessage(msg.content || '(빈 메시지)')
+                        }}
+                      />
                       
                       {/* 참조 문서 정보 표시 */}
                       {msg.role === 'ai' && msg.references && msg.references.length > 0 && (

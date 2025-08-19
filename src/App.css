@@ -1,1 +1,14 @@
 /* Support Hub custom styles */
+
+/* 메시지 포맷팅 스타일 */
+.message-content {
+  line-height: 1.5;
+}
+
+.message-content div {
+  margin-bottom: 0.25rem;
+}
+
+.message-content div:last-child {
+  margin-bottom: 0;
+}

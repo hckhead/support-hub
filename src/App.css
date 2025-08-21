@@ -12,3 +12,26 @@
 .message-content div:last-child {
   margin-bottom: 0;
 }
+
+/* 마크다운 스타일 */
+.message-content strong {
+  font-weight: 600;
+}
+
+.message-content em {
+  font-style: italic;
+}
+
+.message-content code {
+  font-family: 'Courier New', monospace;
+  background-color: #f3f4f6;
+  padding: 0.125rem 0.25rem;
+  border-radius: 0.25rem;
+  font-size: 0.875rem;
+}
+
+/* 다크 모드에서의 코드 스타일 */
+.dark .message-content code {
+  background-color: #374151;
+  color: #e5e7eb;
+}

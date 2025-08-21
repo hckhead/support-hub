@@ -84,18 +84,33 @@ const App: React.FC = () => {
 
   // 메시지 포맷팅 함수
   const formatMessage = (content: string) => {
+    console.log('🔧 포맷팅 전:', content);
+    
     // 마크다운 처리
-    return content.split('\n').map(line => {
+    const formatted = content.split('\n').map(line => {
       const trimmedLine = line.trim();
       if (trimmedLine === '') {
         return '<br>';
-      } else if (trimmedLine.startsWith('**') && trimmedLine.endsWith('**')) {
-        // 볼드 텍스트 처리
-        return `<div class="font-bold mb-1">${trimmedLine.replace(/\*\*/g, '')}</div>`;
       } else {
-        return `<div class="mb-1">${trimmedLine}</div>`;
+        // 볼드 텍스트 처리 (한 줄 내에서 여러 개 가능)
+        let processedLine = trimmedLine;
+        
+        // **텍스트** 패턴 처리
+        processedLine = processedLine.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        
+        // *텍스트* 패턴 처리 (이탤릭)
+        processedLine = processedLine.replace(/\*(.*?)\*/g, '<em>$1</em>');
+        
+        // `텍스트` 패턴 처리 (코드)
+        processedLine = processedLine.replace(/`(.*?)`/g, '<code class="bg-gray-200 dark:bg-gray-700 px-1 rounded text-sm">$1</code>');
+        
+        console.log('🔧 처리된 라인:', processedLine);
+        return `<div class="mb-1">${processedLine}</div>`;
       }
     }).join('');
+    
+    console.log('🔧 포맷팅 후:', formatted);
+    return formatted;
   };
 
   const sendMessage = async () => {
@@ -439,7 +454,7 @@ const App: React.FC = () => {
           /* Chat layout when messages exist */
           <>
             {/* Chat Messages */}
-            <div className="flex-1 overflow-y-auto p-4 pb-20">
+            <div className="flex-1 overflow-y-auto p-4 pb-32">
               <div className="max-w-4xl mx-auto space-y-4">
                 {messages.map((msg, index) => (
                   <div
@@ -451,14 +466,12 @@ const App: React.FC = () => {
                         ? 'bg-blue-600 text-white' 
                         : isDarkMode ? 'bg-gray-700 text-gray-200' : 'bg-gray-100 text-gray-800'
                     }`}>
-                      <div 
-                        className="message-content"
-                        dangerouslySetInnerHTML={{
-                          __html: msg.role === 'ai' && index === messages.length - 1 && currentAiMessage 
-                            ? formatMessage(currentAiMessage)
-                            : formatMessage(msg.content || '(빈 메시지)')
-                        }}
-                      />
+                      <div className="message-content">
+                        {msg.role === 'ai' && index === messages.length - 1 && currentAiMessage 
+                          ? <div dangerouslySetInnerHTML={{ __html: formatMessage(currentAiMessage) }} />
+                          : <div dangerouslySetInnerHTML={{ __html: formatMessage(msg.content || '(빈 메시지)') }} />
+                        }
+                      </div>
                       
                       {/* 참조 문서 정보 표시 */}
                       {msg.role === 'ai' && msg.references && msg.references.length > 0 && (
@@ -501,7 +514,7 @@ const App: React.FC = () => {
 
         {/* Fixed Input Area - Only visible when chat has started */}
         {messages.length > 0 && (
-          <div className={`absolute bottom-0 left-0 right-0 border-t p-4 shadow-lg transition-colors duration-200 ${isDarkMode ? 'bg-gray-900 border-gray-700' : 'bg-white border-gray-200'}`}>
+          <div className={`fixed bottom-0 left-0 right-0 border-t p-4 shadow-lg transition-colors duration-200 z-10 ${isDarkMode ? 'bg-gray-900 border-gray-700' : 'bg-white border-gray-200'}`}>
             <div className="max-w-4xl mx-auto">
               <div className="flex items-center space-x-3">
                 <div className="flex-1 relative">

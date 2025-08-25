@@ -125,81 +125,52 @@ const App: React.FC = () => {
     setHoveredDocument(null);
   };
 
-  // RAGFlow 문서 정보 조회 함수
+    // RAGFlow 문서 정보 조회 함수
   const fetchDocumentInfo = async (documentId: string) => {
     try {
-      // 여러 가능한 API 엔드포인트 시도
-      const endpoints = [
-        `${config.apiBase}/documents/${documentId}`,
-        `${config.apiBase}/knowledge/${documentId}`,
-        `${config.apiBase}/sources/${documentId}`,
-        `${config.apiBase}/api/v1/documents/${documentId}`,
-        `${config.apiBase}/api/v1/knowledge/${documentId}`,
-        `${config.apiBase}/api/v1/sources/${documentId}`,
-        `${config.apiBase}/api/v1/knowledge-bases/documents/${documentId}`,
-        `${config.apiBase}/api/v1/retrieval/documents/${documentId}`,
-        `${config.apiBase}/api/v1/rag/documents/${documentId}`,
-        `${config.apiBase}/api/v1/vectorstore/documents/${documentId}`
-      ];
+      // RAGFlow Retrieve chunks API 사용
+      const endpoint = `${config.apiBase}/api/v1/datasets/chunks/${documentId}`;
       
-             for (const endpoint of endpoints) {
-         try {
-           console.log(`🔍 API 호출 시도: ${endpoint}`);
-           const response = await fetch(endpoint, {
-             method: 'GET',
-             headers: {
-               'Authorization': `Bearer ${config.apiKey}`,
-               'Content-Type': 'application/json'
-             }
-           });
-           
-           console.log(`🔍 API 응답 상태: ${response.status} - ${endpoint}`);
-           
-           if (response.ok) {
-             const documentData = await response.json();
-             console.log(`✅ 문서 ${documentId} 정보 성공:`, documentData);
-             // 임시로 하드코딩된 문서 이름 (API 성공 시에도 사용)
-             const tempTitles: { [key: string]: string } = {
-               '12': '메리츠화재_라이선스_정책.pdf',
-               '34': '라이선스_검증_절차_매뉴얼.docx',
-               '49': 'TunA_라이선스_가이드_v2.1.pdf'
-             };
-             
-             return {
-               title: tempTitles[documentId] || documentData.title || documentData.name || documentData.filename || `문서 ${documentId}`,
-               content: documentData.content || documentData.text || documentData.description || '내용을 불러올 수 없습니다.',
-               file_url: documentData.file_url || documentData.url || documentData.download_url,
-               file_type: documentData.file_type || documentData.type || documentData.mime_type,
-               page_number: documentData.page_number || documentData.page,
-               metadata: { id: documentId, ...documentData }
-             };
-           } else {
-             console.log(`❌ API 응답 실패: ${response.status} - ${endpoint}`);
-           }
-         } catch (e) {
-           console.log(`❌ API 호출 실패: ${endpoint}`, e);
-         }
-       }
+      console.log(`🔍 RAGFlow API 호출 시도: ${endpoint}`);
       
-             // 모든 API 시도 실패 시 기본 정보 반환
-       console.log(`❌ 문서 ${documentId} 정보 조회 실패 - 모든 엔드포인트 시도 완료`);
-       
-       // 임시로 하드코딩된 문서 이름 (테스트용)
-       const tempTitles: { [key: string]: string } = {
-         '12': '메리츠화재_라이선스_정책.pdf',
-         '34': '라이선스_검증_절차_매뉴얼.docx',
-         '49': 'TunA_라이선스_가이드_v2.1.pdf'
-       };
-       
-       console.log(`📄 문서 ${documentId} 하드코딩된 제목 사용:`, tempTitles[documentId]);
-       
-       return {
-         title: tempTitles[documentId] || `문서 ${documentId}`,
-         content: `문서 ID: ${documentId}의 정보를 조회할 수 없습니다.`,
-         metadata: { id: documentId }
-       };
+      const response = await fetch(endpoint, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${config.apiKey}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      console.log(`🔍 RAGFlow API 응답 상태: ${response.status}`);
+      
+      if (response.ok) {
+        const chunkData = await response.json();
+        console.log(`✅ 청크 ${documentId} 정보 성공:`, chunkData);
+        
+        return {
+          title: chunkData.title || chunkData.name || chunkData.filename || `문서 ${documentId}`,
+          content: chunkData.content || chunkData.text || chunkData.description || '내용을 불러올 수 없습니다.',
+          file_url: chunkData.file_url || chunkData.url || chunkData.download_url,
+          file_type: chunkData.file_type || chunkData.type || chunkData.mime_type,
+          page_number: chunkData.page_number || chunkData.page,
+          metadata: { id: documentId, ...chunkData }
+        };
+      } else {
+        console.log(`❌ RAGFlow API 응답 실패: ${response.status}`);
+        
+        // API 실패 시 기본 정보 반환
+        return {
+          title: `문서 ${documentId}`,
+          content: `문서 ID: ${documentId}의 정보를 조회할 수 없습니다.`,
+          file_url: null,
+          file_type: 'pdf',
+          page_number: null,
+          metadata: { id: documentId }
+        };
+      }
       
     } catch (error) {
+      console.log(`❌ 문서 ${documentId} 정보 조회 실패:`, error);
       return {
         title: `문서 ${documentId}`,
         content: '문서 정보를 불러올 수 없습니다.',
@@ -485,13 +456,14 @@ const App: React.FC = () => {
                 if (lastMessage && lastMessage.role === 'ai') {
                   lastMessage.content = aiContentRef.current;
                   
-                  // 참조 정보가 있으면 업데이트
+                                    // 참조 정보가 있으면 업데이트 (하지만 나중에 덮어쓸 예정)
                   if (references && Array.isArray(references)) {
-                    lastMessage.references = references;
+                    console.log('🔍 기존 참조 정보 발견:', references);
                   }
                   
-                                    // 전체 텍스트에서 참조 문서 추출
-                  if (!lastMessage.references || lastMessage.references.length === 0) {
+                  // 전체 텍스트에서 참조 문서 추출 (항상 실행)
+                  console.log('🔍 참조 문서 추출 시작 - aiContentRef.current 길이:', aiContentRef.current.length);
+                  if (aiContentRef.current && aiContentRef.current.length > 0) { // 내용이 있을 때만 실행
                     const content = aiContentRef.current;
                     
                     // 전체 텍스트에서 ID 추출 (쉼표로 구분된 형태도 포함)
@@ -517,10 +489,10 @@ const App: React.FC = () => {
                      console.log('🔍 전체 텍스트 내용:', content);
                     
                     if (matches.length > 0) {
-                      // 중복 제거
+                      // 중복 제거하고 상위 1개만
                       const uniqueIds: string[] = [];
                       matches.forEach(id => {
-                        if (!uniqueIds.includes(id)) {
+                        if (!uniqueIds.includes(id) && uniqueIds.length < 1) {
                           uniqueIds.push(id);
                         }
                       });
@@ -570,9 +542,39 @@ const App: React.FC = () => {
                           documentContent = `문서 ${id}에서 참조된 내용`;
                         }
                         
+                        // 파일 이름과 내용 추출
+                        let actualTitle = `문서 ${id}`;
+                        let extractedContent = `문서 ${id}에서 참조된 내용`;
+                        
+                        // 전체 텍스트에서 해당 ID가 포함된 문장 찾기
+                        const sentences = content.split(/[.!?]\s+/);
+                        for (const sentence of sentences) {
+                          if (sentence.includes(`[ID:${id}]`) || sentence.includes(`ID:${id}`)) {
+                            console.log(`🔍 ID ${id}가 포함된 문장:`, sentence);
+                            
+                            // ID 부분을 제거하고 내용 추출
+                            const cleanSentence = sentence.replace(/\[?ID:${id}\]?/g, '').trim();
+                            if (cleanSentence && cleanSentence.length > 0) {
+                              // 파일 이름: 첫 번째 의미있는 단어들
+                              const words = cleanSentence.split(/\s+/).slice(0, 4);
+                              actualTitle = words.join(' ');
+                              
+                              // 호버 내용: 전체 문장 내용
+                              extractedContent = cleanSentence;
+                              
+                              console.log(`✅ 문서 ${id} 제목 추출:`, actualTitle);
+                              console.log(`✅ 문서 ${id} 내용 추출:`, extractedContent);
+                              break;
+                            }
+                          }
+                        }
+                        
+                        console.log(`📄 최종 문서 ${id} 제목:`, actualTitle);
+                        console.log(`📄 최종 문서 ${id} 내용:`, extractedContent);
+                        
                         return {
-                          title: `문서 ${id}`, // 임시 제목, 나중에 실제 문서 이름으로 업데이트
-                          content: documentContent,
+                          title: actualTitle, // 실제 문서 제목 사용
+                          content: extractedContent, // 호버 시 표시할 내용
                           metadata: { id: id }
                         };
                       });
@@ -595,17 +597,27 @@ const App: React.FC = () => {
                         const documentResults = await Promise.allSettled(documentPromises);
                         
                         const updatedReferences = documentResults
-                          .filter((result): result is PromiseFulfilledResult<any> => result.status === 'fulfilled')
                           .map((result, index) => {
-                            const docInfo = result.value;
                             const originalRef = references[index];
-                            console.log(`📄 문서 ${uniqueIds[index]} 정보:`, docInfo);
+                            let finalTitle = originalRef.title; // 이미 추출된 실제 제목 사용
+                            
+                            // API가 성공하고 더 나은 제목을 제공하는 경우에만 업데이트
+                            if (result.status === 'fulfilled') {
+                              const docInfo = result.value;
+                              console.log(`📄 문서 ${uniqueIds[index]} 정보:`, docInfo);
+                              
+                              // API에서 가져온 제목이 기본값이 아닌 경우에만 사용
+                              if (docInfo.title && docInfo.title !== `문서 ${uniqueIds[index]}`) {
+                                finalTitle = docInfo.title;
+                              }
+                            }
+                            
                             return {
                               ...originalRef,
-                              title: docInfo.title, // 실제 문서 이름으로 업데이트
-                              file_url: docInfo.file_url,
-                              file_type: docInfo.file_type,
-                              page_number: docInfo.page_number
+                              title: finalTitle, // 추출된 실제 제목 우선 사용
+                              file_url: result.status === 'fulfilled' ? result.value.file_url : undefined,
+                              file_type: result.status === 'fulfilled' ? result.value.file_type : undefined,
+                              page_number: result.status === 'fulfilled' ? result.value.page_number : undefined
                             };
                           });
                         

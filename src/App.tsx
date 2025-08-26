@@ -715,9 +715,9 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className={`min-h-screen flex flex-col transition-colors duration-200 ${isDarkMode ? 'bg-gray-900 text-white dark' : 'bg-white text-gray-900'}`}>
+    <div className={`min-h-screen flex flex-col transition-colors duration-200 ${isDarkMode ? 'gradient-bg-dark text-white dark' : 'bg-white text-gray-900'}`}>
       {/* Header */}
-      <header className={`flex justify-between items-center py-2 px-4 border-b transition-colors duration-200 ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}`}>
+      <header className={`flex justify-between items-center py-3 px-6 ${isDarkMode ? 'liquid-glass-dark' : 'bg-white border border-gray-200'} rounded-b-2xl mx-4 mt-4 transition-all duration-300 shadow-lg`}>
         <h1 
           onClick={() => {
             setMessages([]);
@@ -748,10 +748,10 @@ const App: React.FC = () => {
 
       {/* Settings Modal */}
       {showConfig && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className={`p-6 rounded-lg shadow-xl w-full max-w-md mx-4 transition-colors duration-200 ${isDarkMode ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'}`}>
+        <div className="fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className={`p-6 ${isDarkMode ? 'liquid-glass-card-dark' : 'bg-white border border-gray-200'} w-full max-w-md mx-4 transition-all duration-300 shadow-xl rounded-2xl`}>
             <div className="flex justify-between items-center mb-4">
-              <h2 className={`text-xl font-semibold ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>API 설정</h2>
+                              <h2 className={`text-xl font-semibold ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>API 설정</h2>
               <button 
                 onClick={() => setShowConfig(false)}
                 className={`transition-colors duration-200 ${isDarkMode ? 'text-gray-400 hover:text-white' : 'text-gray-500 hover:text-gray-700'}`}
@@ -766,7 +766,7 @@ const App: React.FC = () => {
                   value={config.apiBase}
                   onChange={(e) => setConfig({ ...config, apiBase: e.target.value })}
                   placeholder="https://your-ragflow-instance/api/v1"
-                  className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200 ${isDarkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'border-gray-300 bg-white text-gray-900 placeholder-gray-500'}`}
+                  className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 ${isDarkMode ? 'liquid-glass-input-dark text-white placeholder-gray-300' : 'border-gray-300 bg-white text-gray-900 placeholder-gray-500'}`}
                 />
               </div>
               <div>
@@ -776,7 +776,7 @@ const App: React.FC = () => {
                   onChange={(e) => setConfig({ ...config, apiKey: e.target.value })}
                   placeholder="your-api-key"
                   type="password"
-                  className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200 ${isDarkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'border-gray-300 bg-white text-gray-900 placeholder-gray-500'}`}
+                  className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 ${isDarkMode ? 'liquid-glass-input-dark text-white placeholder-gray-300' : 'border-gray-300 bg-white text-gray-900 placeholder-gray-500'}`}
                 />
               </div>
               <div>
@@ -785,7 +785,7 @@ const App: React.FC = () => {
                   value={config.chatId}
                   onChange={(e) => setConfig({ ...config, chatId: e.target.value })}
                   placeholder="your-agent-id"
-                  className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200 ${isDarkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'border-gray-300 bg-white text-gray-900 placeholder-gray-500'}`}
+                  className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 ${isDarkMode ? 'liquid-glass-input-dark text-white placeholder-gray-300' : 'border-gray-300 bg-white text-gray-900 placeholder-gray-500'}`}
                 />
               </div>
               <div>
@@ -794,14 +794,14 @@ const App: React.FC = () => {
                   value={config.model}
                   onChange={(e) => setConfig({ ...config, model: e.target.value })}
                   placeholder="gpt-3.5-turbo"
-                  className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200 ${isDarkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'border-gray-300 bg-white text-gray-900 placeholder-gray-500'}`}
+                  className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 ${isDarkMode ? 'liquid-glass-input-dark text-white placeholder-gray-300' : 'border-gray-300 bg-white text-gray-900 placeholder-gray-500'}`}
                 />
               </div>
             </div>
             <div className="flex justify-end space-x-3 mt-6">
               <button 
                 onClick={() => setShowConfig(false)}
-                className={`px-4 py-2 rounded-lg transition-colors duration-200 ${isDarkMode ? 'text-gray-300 hover:text-white hover:bg-gray-700' : 'text-gray-600 hover:text-gray-800 hover:bg-gray-100'}`}
+                className={`px-4 py-2 rounded-lg transition-all duration-200 ${isDarkMode ? 'liquid-glass-dark text-gray-300 hover:text-white' : 'liquid-glass text-gray-600 hover:text-gray-800'}`}
               >
                 취소
               </button>
@@ -810,7 +810,7 @@ const App: React.FC = () => {
                   saveConfig();
                   setShowConfig(false);
                 }} 
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200"
+                className="px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all duration-200 shadow-lg"
               >
                 저장
               </button>
@@ -826,7 +826,7 @@ const App: React.FC = () => {
           <div className="flex-1 flex flex-col justify-center items-center px-4">
             <div className="text-center mb-8">
               <div className="text-6xl mb-4">💬</div>
-              <h2 className={`text-2xl font-light mb-2 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>Support Hub에 오신 것을 환영합니다</h2>
+              <h2 className={`text-2xl font-semibold mb-3 welcome-title ${isDarkMode ? 'text-gray-200' : 'text-gray-700'}`}>Support Hub에 오신 것을 환영합니다</h2>
             </div>
             
             {/* Google-style centered input */}
@@ -838,13 +838,13 @@ const App: React.FC = () => {
                     onChange={(e) => setInput(e.target.value)}
                     onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
                     placeholder="무엇을 도와드릴까요?"
-                    className={`w-full px-6 py-4 border rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg transition-colors duration-200 ${isDarkMode ? 'bg-gray-800 border-gray-600 text-white placeholder-gray-400' : 'border-gray-300 bg-white text-gray-900 placeholder-gray-500'}`}
+                    className={`w-full px-6 py-4 border rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg transition-all duration-300 ${isDarkMode ? 'liquid-glass-input-dark text-white placeholder-gray-300' : 'border-gray-300 bg-white text-gray-900 placeholder-gray-500'}`}
                   />
                 </div>
                 <button 
                   onClick={sendMessage} 
                   disabled={loading || !input.trim()}
-                  className="px-8 py-4 bg-blue-600 text-white rounded-full hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-lg"
+                  className="px-8 py-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-full hover:from-blue-700 hover:to-blue-800 disabled:opacity-50 disabled:cursor-not-allowed text-lg shadow-lg transition-all duration-300"
                 >
                   전송
                 </button>
@@ -868,10 +868,10 @@ const App: React.FC = () => {
                     key={`${index}-${forceUpdate}`}
                     className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
                   >
-                    <div className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
+                    <div className={`max-w-xs lg:max-w-md px-4 py-3 rounded-2xl ${
                       msg.role === 'user' 
-                        ? 'bg-blue-600 text-white' 
-                        : isDarkMode ? 'bg-gray-700 text-gray-200' : 'bg-gray-100 text-gray-800'
+                        ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg' 
+                        : isDarkMode ? 'liquid-glass-card-dark text-gray-200' : 'bg-gray-100 text-gray-800'
                     }`}>
                       <div className="message-content">
                         {msg.role === 'ai' && index === messages.length - 1 && currentAiMessage 
@@ -962,9 +962,9 @@ const App: React.FC = () => {
                 ))}
                 {loading && (
                   <div className="flex justify-start">
-                    <div className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${isDarkMode ? 'bg-gray-700 text-gray-200' : 'bg-gray-100 text-gray-800'}`}>
+                    <div className={`max-w-xs lg:max-w-md px-4 py-3 rounded-2xl ${isDarkMode ? 'liquid-glass-card-dark text-gray-200' : 'bg-gray-100 text-gray-800'}`}>
                       <div className="flex items-center space-x-2">
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-600"></div>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500"></div>
                         <span className="text-sm">AI가 응답을 생성하고 있습니다...</span>
                       </div>
                     </div>
@@ -978,7 +978,7 @@ const App: React.FC = () => {
 
         {/* Fixed Input Area - Only visible when chat has started */}
         {messages.length > 0 && (
-          <div className={`fixed bottom-0 left-0 right-0 border-t p-4 shadow-lg transition-colors duration-200 z-10 ${isDarkMode ? 'bg-gray-900 border-gray-700' : 'bg-white border-gray-200'}`}>
+          <div className={`fixed bottom-0 left-0 right-0 p-4 z-10 ${isDarkMode ? 'liquid-glass-dark' : 'bg-white border border-gray-200'} rounded-t-2xl mx-4 mb-4 transition-all duration-300 shadow-lg`}>
             <div className="max-w-4xl mx-auto">
               <div className="flex items-center space-x-3">
                 <div className="flex-1 relative">
@@ -987,10 +987,10 @@ const App: React.FC = () => {
                     onChange={(e) => setInput(e.target.value)}
                     onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
                     placeholder="무엇을 도와드릴까요?"
-                    className={`w-full px-4 py-3 border rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base transition-colors duration-200 ${isDarkMode ? 'bg-gray-800 border-gray-600 text-white placeholder-gray-400' : 'border-gray-300 bg-white text-gray-900 placeholder-gray-500'}`}
+                    className={`w-full px-4 py-3 border rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base transition-all duration-300 ${isDarkMode ? 'liquid-glass-input-dark text-white placeholder-gray-300' : 'border-gray-300 bg-white text-gray-900 placeholder-gray-500'}`}
                   />
                 </div>
-                <label className={`cursor-pointer p-3 rounded-full transition-colors ${isDarkMode ? 'bg-gray-700 hover:bg-gray-600 text-gray-300' : 'bg-gray-100 hover:bg-gray-200 text-gray-600'}`}>
+                <label className={`cursor-pointer p-3 rounded-full transition-all duration-300 ${isDarkMode ? 'liquid-glass-dark hover:bg-gray-600 text-gray-300' : 'liquid-glass hover:bg-gray-200 text-gray-600'}`}>
                   <input
                     type="file"
                     multiple
@@ -1003,7 +1003,7 @@ const App: React.FC = () => {
                 <button 
                   onClick={sendMessage} 
                   disabled={loading || !input.trim()}
-                  className="px-6 py-3 bg-blue-600 text-white rounded-full hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-base font-medium"
+                  className="px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-full hover:from-blue-700 hover:to-blue-800 disabled:opacity-50 disabled:cursor-not-allowed text-base font-medium shadow-lg transition-all duration-300"
                 >
                   전송
                 </button>
@@ -1054,7 +1054,7 @@ const App: React.FC = () => {
       {/* 문서 미리보기 팝업 */}
       {hoveredDocument && (
         <div 
-          className="fixed z-50 max-w-md bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg p-4 text-sm"
+          className={`fixed z-50 max-w-md ${isDarkMode ? 'liquid-glass-card-dark' : 'liquid-glass-card'} rounded-2xl shadow-xl p-4 text-sm transition-all duration-300`}
           style={{
             left: `${hoverPosition.x}px`,
             top: `${hoverPosition.y}px`,
